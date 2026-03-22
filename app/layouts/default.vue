@@ -1,8 +1,8 @@
 <template>
   <div class="container">
     <AppHeader />
-    <AppMain />
-    <AppFooter />
+    <AppSideBar /> <slot /> 
+
+    <ColorModeButton />
   </div>
-  <slot />
 </template>
