@@ -1,189 +1,176 @@
-<script setup lang="ts">
-import { reactive, ref } from 'vue'
+<template>
+  <div class="contact-wrapper">
+    <div class="contact-card">
+      <h2 class="terminal-title">Formulario de Contacto</h2>
+      
+      <form @submit.prevent="enviarDatos" class="terminal-form">
+        <div class="input-group">
+          <label>Nombre Completo:</label>
+          <input v-model="form.nombre" type="text" required placeholder="Ingresa tu nombre..." />
+        </div>
+        
+        <div class="input-group">
+          <label>Correo Electrónico:</label>
+          <input v-model="form.correo" type="email" required placeholder="correo@ejemplo.com" />
+        </div>
+        
+        <div class="input-group">
+          <label>Teléfono:</label>
+          <input v-model="form.telefono" type="tel" required placeholder="A 10 dígitos..." />
+        </div>
+        
+        <div class="input-group">
+          <label>Proyecto:</label>
+          <textarea v-model="form.proyecto" rows="4" required placeholder="Describe los requerimientos técnicos..."></textarea>
+        </div>
+        
+        <button type="submit" class="submit-btn" :disabled="loading">
+          {{ loading ? 'TRANSMITIENDO...' : 'ENVIAR DATOS' }}
+        </button>
+      </form>
+      
+      <p v-if="mensaje" class="status-msg">{{ mensaje }}</p>
+    </div>
+  </div>
+</template>
 
-const form = reactive({
+<script setup>
+import { ref } from 'vue'
+
+const form = ref({
   nombre: '',
-  email: '',
-  asunto: '',
-  mensaje: '',
+  correo: '',
+  telefono: '',
+  proyecto: ''
 })
 
 const loading = ref(false)
-const enviado = ref(false)
-const errorMsg = ref('')
+const mensaje = ref('')
 
-const handleSubmit = async () => {
-  errorMsg.value = ''
-  enviado.value = false
+// PEGA AQUÍ LA URL QUE COPIASTE DE GOOGLE APPS SCRIPT
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8mcJpd2T258WJVpoaCC6wG6GKR7rPW0ylxVd3XA47O6Hw8X79wLzWGLdfwdHXKXarlg/exec' 
 
-  if (!form.nombre || !form.email || !form.asunto || !form.mensaje) {
-    errorMsg.value = 'Por favor completa todos los campos.'
-    return
-  }
-
+const enviarDatos = async () => {
   loading.value = true
+  mensaje.value = ''
+  
   try {
-    // Simulación de envío de 800ms según el manual
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    enviado.value = true
-    form.nombre = ''; form.email = ''; form.asunto = ''; form.mensaje = ''
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(form.value),
+      // Usamos text/plain para evitar que el navegador envíe un preflight (CORS) que bloquee la petición
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8', 
+      }
+    })
+    
+    mensaje.value = '¡Transmisión completada! Datos almacenados en el servidor.'
+    form.value = { nombre: '', correo: '', telefono: '', proyecto: '' } // Limpiar formulario
+    
   } catch (error) {
-    errorMsg.value = 'Ocurrió un error al enviar el mensaje.'
+    console.error('Error de transmisión:', error)
+    mensaje.value = 'Error al establecer conexión con la base de datos.'
   } finally {
     loading.value = false
   }
 }
 </script>
 
-<template>
-  <div class="container">
-    <section class="contacto">
-      <div class="proyecto__card contacto__card">
-        <div class="proyecto__content">
-          <h1 class="proyectos__title">Hablemos de tu proyecto</h1>
-          <p class="proyectos__subtitle">
-            Si tienes una idea o propuesta, mándame un mensaje y nos pondremos en contacto.
-          </p>
-
-          <form class="contacto__form" @submit.prevent="handleSubmit">
-            <div class="contacto__group">
-              <label for="nombre">Nombre</label>
-              <input id="nombre" v-model="form.nombre" type="text" placeholder="Tu nombre" />
-            </div>
-
-            <div class="contacto__group">
-              <label for="email">Correo electrónico</label>
-              <input id="email" v-model="form.email" type="email" placeholder="tucorreo@email.com" />
-            </div>
-
-            <div class="contacto__group">
-              <label for="asunto">Asunto</label>
-              <input id="asunto" v-model="form.asunto" type="text" placeholder="Ej. Desarrollo de software" />
-            </div>
-
-            <div class="contacto__group">
-              <label for="mensaje">Mensaje</label>
-              <textarea id="mensaje" v-model="form.mensaje" rows="4" placeholder="Cuéntame sobre tu idea..." />
-            </div>
-
-            <button class="proyecto__button" type="submit" :disabled="loading">
-              {{ loading ? 'Enviando...' : 'Enviar mensaje →' }}
-            </button>
-
-            <p v-if="enviado" class="contacto__success">¡Transmisión completada con éxito!</p>
-            <p v-if="errorMsg" class="contacto__error">{{ errorMsg }}</p>
-          </form>
-        </div>
-      </div>
-    </section>
-  </div>
-</template>
-
 <style scoped>
-*, *::before, *::after { box-sizing: border-box; }
-
-/* CONTENEDOR (Transparente para ver la lluvia Matrix) */
-.container {
-  width: 100%;
-  min-height: 100vh;
-  padding: 40px 20px;
-  background: rgba(22, 0, 31, 0.85); 
+.contact-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 80vh;
+  padding: 20px;
 }
 
-.contacto { width: 100%; max-width: 600px; }
-
-/* TARJETA (Copiando el estilo exacto de Proyectos) */
-.proyecto__card {
-  background: #020617; /* Fondo negro profundo */
-  border: 1px solid rgba(0, 255, 0, 0.3); /* Borde verde sutil */
-  border-radius: 16px;
+.contact-card {
+  background: rgba(0, 0, 0, 0.85); /* Fondo oscuro translúcido */
+  border: 2px solid #00ff00;
+  box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.2);
+  border-radius: 10px;
   padding: 30px;
-  transition: all 0.3s ease;
-}
-
-.proyecto__card:hover {
-  border-color: #00ff00; /* Brillo verde total al pasar el mouse */
-  box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-}
-
-/* TÍTULOS (Estilo Proyectos) */
-.proyectos__title {
-  color: #00ff00;
-  font-size: 2rem;
-  margin-bottom: 10px;
-  text-align: center;
-  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-}
-
-.proyectos__subtitle {
-  color: #cbd5e1;
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 0.95rem;
-}
-
-/* FORMULARIO Y GRUPOS */
-.contacto__form { display: flex; flex-direction: column; gap: 15px; }
-.contacto__group { display: flex; flex-direction: column; gap: 8px; }
-
-.contacto__group label {
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: bold;
-}
-
-/* INPUTS (Estilo Matrix) */
-.contacto__group input, .contacto__group textarea {
   width: 100%;
+  max-width: 500px;
+  color: #00ff00;
+}
+
+.terminal-title {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+  text-shadow: 0 0 8px #00ff00;
+  border-bottom: 1px solid #00ff00;
+  padding-bottom: 10px;
+}
+
+.input-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  margin-bottom: 8px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.terminal-form input,
+.terminal-form textarea {
+  background: rgba(0, 20, 0, 0.5);
+  border: 1px solid #00ff00;
+  color: #00ff00;
   padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 255, 0, 0.2);
-  background: rgba(0, 255, 0, 0.05);
-  color: #ffffff;
+  border-radius: 4px;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: box-shadow 0.3s;
 }
 
-.contacto__group input:focus, .contacto__group textarea:focus {
-  border-color: #00ff00;
-  box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+.terminal-form input::placeholder,
+.terminal-form textarea::placeholder {
+  color: rgba(0, 255, 0, 0.4);
 }
 
-/* BOTÓN NEÓN (Como los links de proyectos) */
-.proyecto__button {
+.terminal-form input:focus,
+.terminal-form textarea:focus {
+  box-shadow: 0 0 12px #00ff00;
+  background: rgba(0, 40, 0, 0.8);
+}
+
+.submit-btn {
+  background: rgba(0, 255, 0, 0.1);
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  padding: 12px 20px;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  border-radius: 4px;
+  transition: all 0.3s ease;
   margin-top: 10px;
+}
+
+.submit-btn:hover:not(:disabled) {
   background: #00ff00;
   color: #000;
-  border: none;
-  padding: 14px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  box-shadow: 0 0 20px #00ff00;
 }
 
-.proyecto__button:hover {
-  background: #00cc00;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
-  transform: translateY(-2px);
-}
-
-.proyecto__button:disabled {
-  background: #334155;
-  color: #94a3b8;
+.submit-btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* MENSAJES */
-.contacto__success { color: #00ff00; text-align: center; margin-top: 15px; font-weight: bold; }
-.contacto__error { color: #f87171; text-align: center; margin-top: 15px; }
-
-@media (max-width: 500px) {
-  .proyecto__card { padding: 20px; }
-  .proyectos__title { font-size: 1.6rem; }
+.status-msg {
+  margin-top: 20px;
+  text-align: center;
+  font-weight: bold;
+  text-shadow: 0 0 5px #00ff00;
 }
 </style>
