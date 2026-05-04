@@ -14,6 +14,9 @@
     <input type="radio" name="tab" id="tab3" class="tab tab--3" />
     <NuxtLink to="/Proyectos" class="tab_label">proyectos</NuxtLink>
 
+    <input type="radio" name="tab" id="tab3" class="tab tab--3" />
+    <NuxtLink to="/dragon" class="tab_label">dragon</NuxtLink>
+
     
 
 
